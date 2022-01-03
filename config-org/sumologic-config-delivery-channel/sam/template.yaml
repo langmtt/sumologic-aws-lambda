@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: >
+    This solution consists of a lambda function to change the configuration of the AWS Config Delivery Channel
+
+Globals:
+    Function:
+        Timeout: 300
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Author: Sumo Logic
+    Description: This solution consists of a lambda function to change the configuration of the AWS Config Delivery Channel.
+    HomePageUrl: https://github.com/SumoLogic/sumologic-aws-lambda
+    Labels:
+    - sumologic
+    - serverless
+    - security
+    - deliverychanel
+    - config
+    Name: sumologic-config-deliverychanel-aws-org
+    LicenseUrl: ../LICENSE
+    ReadmeUrl: ../README.md
+    SemanticVersion: 1.0.0
+    SourceCodeUrl: https://github.com/SumoLogic/sumologic-aws-lambda/tree/master/config-org/sumologic-config-delivery-channel
+    SpdxLicenseId: Apache-2.0
+
+Parameters:
+  SumoEndpoint:
+    Description: "SumoLogic Endpoint to post logs"
+    Type: "String" 
+
+Resources:
+
+  ConfigDeliveryChannelHelperRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Path: /
+      Policies:
+        - PolicyName: ConfigDeliveryChannelPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - config:DescribeDeliveryChannels
+                  - config:PutDeliveryChannel
+                  - config:DeleteDeliveryChannel
+                Resource: !Sub arn:${AWS::Partition}:config:${AWS::Region}:${AWS::AccountId}:*
+        - PolicyName: LogsPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub arn:*:logs:${AWS::Region}:${AWS::AccountId}:*
+                
+  ConfigDeliveryChannelAwsOrg:
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: W89
+            reason: "Lambda functions should be deployed inside a VPC"  
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: config-delivery-channel.lambda_handler
+      Runtime: python3.7
+      CodeUri: ../src/
+      MemorySize: 128
+      Timeout: 300
+      ReservedConcurrentExecutions: 10
+      Timeout: 900
+      Role: !GetAtt ConfigDeliveryChannelHelperRole.Arn
+
+  DeliveryChannelWhenConfigIsTurnedOn:
+    Type: "Custom::ConfigDeliveryChannel"
+    Properties: !GetAtt SumoLogicHelperFunction.Arn
+        - !ImportValue
+          'Fn::Sub': '${ParentStackName}-SumoLogicHelperFunctionARN'
+      DeliveryFrequency: Six_Hours
+      S3BucketName: !If [enable_config, !Ref BucketName, ""]
+      SnsTopicARN: !Ref SumoSNSTopic
+      RemoveOnDeleteStack: !Ref RemoveSumoResourcesOnDeleteStack          
+
+Outputs:
+    ConfigDeliveryChannelAwsOrg:
+      Description: "ConfigDeliveryChannelAwsOrg Function ARN"
+      Value: !GetAtt ConfigDeliveryChannelAwsOrg.Arn
