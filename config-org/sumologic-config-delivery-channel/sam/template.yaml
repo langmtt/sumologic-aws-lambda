@@ -25,9 +25,36 @@ Metadata:
     SpdxLicenseId: Apache-2.0
 
 Parameters:
-  SumoEndpoint:
-    Description: "SumoLogic Endpoint to post logs"
-    Type: "String" 
+
+  SnsTopicARN:
+    Type: String
+    Description: "Attach SNS topic to AWS Config setting to deliver the logs."
+    Default: ""
+
+  S3BucketName:
+    Type: String
+    Description: "Provide a bucket name to receive configuration history and configuration snapshot files."
+    Default: ""
+
+  RemoveSumoResourcesOnDeleteStack:
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Default: 'true'
+    Description: "To delete collector, sources and app when stack is deleted, set this parameter to true. Default is true.
+                  Deletes the resources created by the stack. Deletion of updated resources will be skipped."
+    Type: String
+
+  DeliveryFrequency:
+    Description: The frequency with which AWS Config delivers configuration snapshots.
+    AllowedValues:
+      - 'One_Hour'
+      - 'Three_Hours'
+      - 'Six_Hours'
+      - 'Twelve_Hours'
+      - 'TwentyFour_Hours'
+    Default: 'Six_Hours'
+    Type: String
 
 Resources:
 
@@ -83,12 +110,11 @@ Resources:
 
   DeliveryChannelWhenConfigIsTurnedOn:
     Type: "Custom::ConfigDeliveryChannel"
-    Properties: !GetAtt SumoLogicHelperFunction.Arn
-        - !ImportValue
-          'Fn::Sub': '${ParentStackName}-SumoLogicHelperFunctionARN'
-      DeliveryFrequency: Six_Hours
-      S3BucketName: !If [enable_config, !Ref BucketName, ""]
-      SnsTopicARN: !Ref SumoSNSTopic
+    Properties:
+      ServiceToken: !GetAtt ConfigDeliveryChannelAwsOrg.Arn
+      DeliveryFrequency: !Ref DeliveryFrequency
+      S3BucketName: !Ref S3BucketName
+      SnsTopicARN: !Ref SnsTopicARN
       RemoveOnDeleteStack: !Ref RemoveSumoResourcesOnDeleteStack          
 
 Outputs:
