@@ -29,21 +29,14 @@ Parameters:
   SnsTopicARN:
     Type: String
     Description: "Attach SNS topic to AWS Config setting to deliver the logs."
+#    AllowedPattern: "arn:aws:sns:.*"
     Default: ""
 
   S3BucketName:
     Type: String
     Description: "Provide a bucket name to receive configuration history and configuration snapshot files."
+#    AllowedPattern: "^([a-z0-9]{1}[a-z0-9-]{1,61}[a-z0-9]{1})$"
     Default: ""
-
-  RemoveSumoResourcesOnDeleteStack:
-    AllowedValues:
-      - 'true'
-      - 'false'
-    Default: 'true'
-    Description: "To delete collector, sources and app when stack is deleted, set this parameter to true. Default is true.
-                  Deletes the resources created by the stack. Deletion of updated resources will be skipped."
-    Type: String
 
   DeliveryFrequency:
     Description: The frequency with which AWS Config delivers configuration snapshots.
@@ -54,6 +47,15 @@ Parameters:
       - 'Twelve_Hours'
       - 'TwentyFour_Hours'
     Default: 'Six_Hours'
+    Type: String
+
+  RemoveSumoResourcesOnDeleteStack:
+    AllowedValues:
+      - 'true'
+      - 'false'
+    Default: 'true'
+    Description: "To delete collector, sources and app when stack is deleted, set this parameter to true. Default is true.
+                  Deletes the resources created by the stack. Deletion of updated resources will be skipped."
     Type: String
 
 Resources:
@@ -79,7 +81,7 @@ Resources:
                   - config:DescribeDeliveryChannels
                   - config:PutDeliveryChannel
                   - config:DeleteDeliveryChannel
-                Resource: !Sub arn:${AWS::Partition}:config:${AWS::Region}:${AWS::AccountId}:*
+                Resource: '*'
         - PolicyName: LogsPolicy
           PolicyDocument:
             Version: '2012-10-17'
@@ -101,11 +103,10 @@ Resources:
     Properties:
       Handler: config-delivery-channel.lambda_handler
       Runtime: python3.7
-      CodeUri: ../src/
+      CodeUri: ../sumologic-config-delivery-channel.zip
       MemorySize: 128
       Timeout: 300
       ReservedConcurrentExecutions: 10
-      Timeout: 900
       Role: !GetAtt ConfigDeliveryChannelHelperRole.Arn
 
   DeliveryChannelWhenConfigIsTurnedOn:

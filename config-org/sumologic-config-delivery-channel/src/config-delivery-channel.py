@@ -67,7 +67,7 @@ def delete(event, _):
         LOGGER.info("DELIVERY CHANNEL - Skipping the AWS Config delivery channel delete.")
 
 def lambda_handler(event, context):
-    LOGGER.info(f"Invoking AWS Config source {event['source']} region {event['region']}")
+    LOGGER.info(f"Invoking AWS Config source")
     """Lambda Handler.
     Args:
         event: event data
