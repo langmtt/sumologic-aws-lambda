@@ -33,6 +33,7 @@ Resources:
 
   SecurityHubCollectorAwsOrg:
     Metadata:
+      SkipBuild: True
       cfn_nag:
         rules_to_suppress:
           - id: W89
@@ -41,7 +42,7 @@ Resources:
     Properties:
       Handler: securityhub_collector_org.lambda_handler
       Runtime: python3.11
-      CodeUri: ../src/
+      CodeUri: ../src/src.zip
       MemorySize: 128
       Timeout: 300
       ReservedConcurrentExecutions: 100
@@ -55,7 +56,6 @@ Resources:
               Pattern:
                 source:
                   - aws.securityhub
-
 Outputs:
     SecurityHubCollectorAwsOrg:
       Description: "SecurityHubCollectorAwsOrg Function ARN"

@@ -48,8 +48,6 @@ Resources:
     Properties:
       Handler: securityhub_forwarder.lambda_handler
       Runtime: python3.11
-      Layers:
-      - Fn::Sub: arn:aws:lambda:${AWS::Region}:956882708938:layer:securityhub_deps:1
       CodeUri: s3://appstore-20231030-securityhub-forwarder/af851614ad2fc36aba60c30ca700505a
       MemorySize: 128
       Timeout: 300

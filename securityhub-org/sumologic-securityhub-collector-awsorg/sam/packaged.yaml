@@ -33,6 +33,7 @@ Parameters:
 Resources:
   SecurityHubCollectorAwsOrg:
     Metadata:
+      SkipBuild: true
       cfn_nag:
         rules_to_suppress:
         - id: W89
@@ -42,7 +43,7 @@ Resources:
     Properties:
       Handler: securityhub_collector_org.lambda_handler
       Runtime: python3.11
-      CodeUri: s3://appstore-20231030-securityhub-collector-awsorg/55757e09bcbcd9341582d51963ad4726
+      CodeUri: s3://appstore-20231030-securityhub-collector-awsorg/777ccb7a25ea254ed6c24e40a08fa709
       MemorySize: 128
       Timeout: 300
       ReservedConcurrentExecutions: 100
